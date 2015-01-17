@@ -10,13 +10,14 @@ module.exports = function (app) {
 	  res.sendfile('./public/views/index.html')
 	});
 
-"https://api.datamarket.azure.com/Bing/Search/Image?Query='" +  + "'&$format=json"
 	app.get('/search', function(req, res){
 		var params = {
 			"airport" : "DTW",
 			"startDate" : "2015-03-01",
 			"endDate" : "2015-03-07",
-			"price" : 300
+			"price" : 300,
+			"dest" : "US",
+			"simple" : true
 		};
 		if(req.query.airport){
 			params.airport = req.query.airport;
@@ -30,11 +31,18 @@ module.exports = function (app) {
 		if(req.query.price){
 			params.price = req.query.price;
 		}
-		var url =  'http://www.skyscanner.com/dataservices/browse/v1.1/US/USD/en-US/destinations/' +  params.airport + '/US/' + params.startDate + '/' + params.endDate + '/?includequotedate=true&includemetadata=true&includecityid=false';
+		if(req.query.dest){
+			params.dest = req.query.dest
+		}
+		if(req.query.simple){
+			params.simple = req.query.simple;
+		}
+		var url =  'http://www.skyscanner.com/dataservices/browse/v1.1/US/USD/en-US/destinations/' +  params.airport + '/' 
+		+ params.dest + '/' + params.startDate + '/' + params.endDate + '/?includequotedate=true&includemetadata=true&includecityid=false';
 		console.log(url);
 		request({
 			method: 'GET',
-			uri: 'http://www.skyscanner.com/dataservices/browse/v1.1/US/USD/en-US/destinations/' +  params.airport + '/US/' + params.startDate + '/' + params.endDate + '/?includequotedate=true&includemetadata=true&includecityid=false',
+			uri: url,
 			json: true
 		},
 		function(error, response, body){
@@ -46,36 +54,45 @@ module.exports = function (app) {
 				flights = formatAirports(flights, body.Places);
 				flights = getPlace(flights, body.Places);
 				flights = createURL(flights, params.startDate, params.endDate);
-				async.map(flights, getImage, function(err, results){
-					var serialize = "";
-					for(var i = 0;i<results.length;i++){
-						//console.log(results[i]['images'][0]);
-						if(results[i]['images']){
-							serialize += results[i]['images'][0].id + ",";
-							flights[i].imageId = results[i]['images'][0].id;
+				if(params.simple == true){
+					var flights = formatJSON(flights)
+					res.send(flights);
+				}
+				else{
+					async.mapLimit(flights, 3, getImage, function(err, results){
+						var serialize = "";
+						console.log("IMAGES" + results.length);
+						console.log("FLIGHTS" + flights.length);
+						console.log(results);
+
+						for(var i = 0;i<results.length;i++){
+								//console.log(results[i]['images'][0]);
+								//console.log(flights[i].Outbound_ToStationId);
+								//console.log(results[i].images);
+								serialize += results[i].images[0].id + ",";
+								flights[i].imageId = results[i].images[0].id;
+							
 						}
-					}
-					request.get({
-							url : 'https://connect.gettyimages.com:443/v3/images/' + encodeURIComponent(serialize) + '?fields=display_set',
-							json : true,
-							headers:{
-							'Api-Key' : auth.getty.key
-							}
-						},
-							function(error, response, body){
-								for(var i = 0;i<flights.length;i++){
-									for(var k = 0;k<body['images'].length;k++){
-										if(body['images'][k].id == flights[i].imageId){
-											flights[i].image = body['images'][k].display_sizes[0].uri;
+						request.get({
+								url : 'https://connect.gettyimages.com:443/v3/images/' + encodeURIComponent(serialize) + '?fields=display_set',
+								json : true,
+								headers:{
+								'Api-Key' : auth.getty.key
+								}
+							},
+								function(error, response, body){
+									for(var i = 0;i<flights.length;i++){
+										for(var k = 0;k<body['images'].length;k++){
+											if(body['images'][k].id == flights[i].imageId){
+												flights[i].image = body['images'][k].display_sizes[0].uri;
+											}
 										}
 									}
-								}
-								var result = formatJSON(flights);
-								res.send(result);
-							});
-				});
-				//res.send(flights);
-
+									flights.sort(compare);
+									res.send(flights);
+								});
+					});
+				}
 			}
 		});
 	});
@@ -205,6 +222,13 @@ var formatJSON = function(flights){
 	return result;
 }
 
+var compare = function(a,b) {
+  if (a.Price < b.Price)
+     return -1;
+  if (a.Price > b.Price)
+    return 1;
+  return 0;
+}
 
 
 

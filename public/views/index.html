@@ -9,7 +9,6 @@
 
   <link rel="stylesheet" href="css/style.css">
   <link href="css/bootstrap.css" rel="stylesheet">
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 
 </head>
 
@@ -31,7 +30,16 @@
 				<label>Returning</label>
 				<input type="date" id="endDate" name="endDate" ng-model="endDate">
 			</div>
-			<input type="submit">
+			<div class="form-group">
+				<label>
+				Destination Type
+				</label>
+				<select ng-model="dest">
+					<option value="US">US</option>
+					<option value="Anywhere">World</option>
+				</select>
+			</div>
+			<input class="btn btn-default" type="submit" value="TRIP ME!">
 		</form>
 	</div>
 	<div class="container results">

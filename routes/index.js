@@ -20,10 +20,10 @@ module.exports = function (app) {
 		function(error, response, body){
 			if(!error)
 			{
-				//var popFlights = PopularTrips(body.Routes);	
 				var flights = BudgetTrips(body.Quotes, 200);
 				flights = formatAgents(flights, body.Agents);
 				flights = formatCarriers(flights, body.Carriers);
+				flights = formatAirports(flights, body.Places);
 				flights = createURL(flights);
 				res.send(flights);
 
@@ -56,7 +56,12 @@ var BudgetTrips = function(quotes, maxprice){
 
 var createURL = function(flights){
 	for(var i = 0;i<flights.length;i++){
-		flights[i].url = 'http://www.skyscanner.com/transport/flights/' + flights[i].Outbound_FromStationId + '/' + flights[i].Outbound_ToStationId + '/150206/150211/airfares-from-los-angeles-international-to-united-states-in-february-2015.html?rtn=1&includePlusOneStops=true&browsePrice=139&age=0';
+		var airport = flights[i].Outbound_FromStationName.split(" ");
+		var airportoutput = "";
+		for(var k = 0;k<airport.length;k++){
+			airportoutput += airport[k] + "-";
+		}
+		flights[i].url = 'http://www.skyscanner.com/transport/flights/' + flights[i].Outbound_FromStationId + '/' + flights[i].Outbound_ToStationId + '/150206/150211/airfares-from-' + airportoutput + 'to-united-states-in-february-2015.html?rtn=1&includePlusOneStops=true&browsePrice=139&age=0';
 	}
 	return flights;
 }
@@ -64,8 +69,8 @@ var createURL = function(flights){
 
 var formatAgents = function(flights, agents){
 	for(var i = 0;i<flights.length;i++){
-		flights[i].Outbound_AgentName = idToName(flights[i].Outbound_AgentIds[0], agents);
-		flights[i].Inbound_AgentName = idToName(flights[i].Inbound_AgentIds[0], agents);
+		flights[i].Outbound_AgentName = idToName(flights[i].Outbound_AgentIds[0], agents, "AgentId");
+		flights[i].Inbound_AgentName = idToName(flights[i].Inbound_AgentIds[0], agents, "AgentId");
 	}
 	return flights;
 
@@ -73,22 +78,24 @@ var formatAgents = function(flights, agents){
 
 var formatCarriers = function(flights, carriers){
 	for(var i = 0;i<flights.length;i++){
-		flights[i].Outbound_CarrierName = idToName(flights[i].Outbound_CarrierIds[0], carriers);
-		flights[i].Inbound_CarrierName = idToName(flights[i].Inbound_CarrierIds[0], carriers);
+		flights[i].Outbound_CarrierName = idToName(flights[i].Outbound_CarrierIds[0], carriers, "CarrierId");
+		flights[i].Inbound_CarrierName = idToName(flights[i].Inbound_CarrierIds[0], carriers, "CarrierId");
 	}
 	return flights
 }
 
+var formatAirports = function(flights, places){
+	for(var i = 0;i<flights.length;i++){
+		flights[i].Outbound_FromStationName = idToName(flights[i].Outbound_FromStationId, places, "PlaceId");
+	}
+	return flights;
+}
 
-
-var idToName = function(id, names){
+var idToName = function(id, names, attr){
 	for(var i = 0;i<names.length;i++){
+		if(names[i][attr] == id){
+			return names[i].Name;
+		}
 		
-		if(names[i].AgentId && names[i].AgentId == id){
-			return names[i].Name;
-		}
-		else if(names[i].CarrierId && names[i].CarrierId == id){
-			return names[i].Name;
-		}
 	}
 }

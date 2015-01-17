@@ -1,5 +1,8 @@
 var request = require('request');
 var moment = require('moment');
+var async = require('async');
+var auth = require('../auth');
+
 
 module.exports = function (app) {
 
@@ -7,6 +10,7 @@ module.exports = function (app) {
 	  res.render('index.ejs');
 	});
 
+"https://api.datamarket.azure.com/Bing/Search/Image?Query='" +  + "'&$format=json"
 	app.get('/search', function(req, res){
 		var params = {
 			"airport" : "DTW",
@@ -35,8 +39,20 @@ module.exports = function (app) {
 				flights = formatAgents(flights, body.Agents);
 				flights = formatCarriers(flights, body.Carriers);
 				flights = formatAirports(flights, body.Places);
+				flights = getPlace(flights, body.Places);
 				flights = createURL(flights, params.startDate, params.endDate);
-				res.send(flights);
+				async.map(flights, getImage, function(err, results){
+					for(var i = 0;i<results.length;i++){
+						//console.log(results[i]['images'][0]);
+						if(results[i]['images']){
+							console.log("IMAGE!!!")
+							console.log(results[i]['images'][0].display_sizes[0].uri);
+							flights[i].image = results[i]['images'][0].display_sizes[0].uri;
+						}
+					}
+					res.send(flights);
+				});
+				//res.send(flights);
 
 			}
 		});
@@ -106,6 +122,27 @@ var formatAirports = function(flights, places){
 	return flights;
 }
 
+var getImage = function(flight, callback){
+	request.get({
+		url : 'https://connect.gettyimages.com:443/v3/search/images?graphical_styles=photography&page_size=1&phrase=' 
+		+ encodeURIComponent(flight.place),
+		json: true,
+		headers:{
+			'Api-Key' : 'qk8yaxa6wa4rr9qkwg3fq8wy'
+		}
+	},
+	function(error, response, body){
+		if(!error){
+			callback(null,body)
+		}
+		else{
+			console.log("Wtf");
+			callback(null,"");
+		}
+	});
+}
+
+
 var idToName = function(id, names, attr){
 	for(var i = 0;i<names.length;i++){
 		if(names[i][attr] == id){
@@ -114,3 +151,23 @@ var idToName = function(id, names, attr){
 		
 	}
 }
+
+var getPlace = function(flights, places){
+	for(var i = 0;i<flights.length;i++){
+		for(var k = 0;k<places.length;k++)
+		{
+			if(flights[i].Outbound_ToStationId == places[k].PlaceId){
+				flights[i].place = places[k].CityName + " " + places[k].RegionId;
+			}
+		}
+	}
+	return flights;
+}
+
+
+
+
+
+
+
+

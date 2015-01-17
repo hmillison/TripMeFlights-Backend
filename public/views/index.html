@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en" ng-app="tripme">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+  <title>TripMe Flights</title>
+
+  <link rel="stylesheet" href="css/style.css">
+  <link href="css/bootstrap.css" rel="stylesheet">
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+
+</head>
+
+<body ng-controller="SearchController">
+	<div class="container form text-center">
+		<h1>TripMe Flights</h1>
+		<form ng-submit="submit()">
+			<div class="form-group">
+				<label>Departing Airport</label>
+				<input type="text" size="3" id="airport" name="airport" ng-model="airport">
+			</div>
+			<div class="form-group">
+				<label>Max Price</label>
+				<input type="text" size="5" id="price" name="price" ng-model="price">
+			</div>
+			<div class="form-group">
+				<label>Departing</label>
+				<input type="date" id="startDate" name="startDate" ng-model="startDate">
+				<label>Returning</label>
+				<input type="date" id="endDate" name="endDate" ng-model="endDate">
+			</div>
+			<input type="submit">
+		</form>
+	</div>
+	<div class="container results">
+		<div data-ng-repeat="result in results" class="col-md-3 col-sm-3 flight " style="background: url('{{ result.image }}') center center;">
+		<a href="{{result.url}}" target="_blank">
+			<div class="caption">
+				<h2>Flight to {{result.place}}</h2>
+				<h3>${{ result.Price }}</h3>
+			</div>
+		</a>
+        </div> 
+        </span> 
+	</div>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.js"></script>
+  <script src="/components/angular-resource/angular-resource.js"></script>
+  <script src="components/angular-animate/angular-animate.js"></script>
+  <script src="components/angular-route/angular-route.js"></script>
+  <script src="js/core.js"></script>
+</body>
+</html>

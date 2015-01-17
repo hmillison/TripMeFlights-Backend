@@ -1,0 +1,24 @@
+{
+  "name": "michigantime",
+  "version": "0.0.0",
+  "homepage": "https://github.com/hmillison/nyminute",
+  "authors": [
+    "Henry Millison <hmillison@gmail.com>"
+  ],
+  "main": "server.js",
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular": "~1.2.25",
+    "angular-resource": "~1.2.26",
+    "angular-animate": "~1.2.26",
+    "angular-route": "~1.3.7"
+  }
+}

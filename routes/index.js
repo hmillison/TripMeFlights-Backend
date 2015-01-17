@@ -7,7 +7,7 @@ var auth = require('../auth');
 module.exports = function (app) {
 
 	app.get('/',function(req,res){
-	  res.render('index.ejs');
+	  res.sendfile('./public/views/index.html')
 	});
 
 "https://api.datamarket.azure.com/Bing/Search/Image?Query='" +  + "'&$format=json"
@@ -35,22 +35,38 @@ module.exports = function (app) {
 			if(!error)
 			{
 
-				var flights = BudgetTrips(body.Quotes, 200);
+				var flights = BudgetTrips(body.Quotes, req.query.price);
 				flights = formatAgents(flights, body.Agents);
 				flights = formatCarriers(flights, body.Carriers);
 				flights = formatAirports(flights, body.Places);
 				flights = getPlace(flights, body.Places);
 				flights = createURL(flights, params.startDate, params.endDate);
 				async.map(flights, getImage, function(err, results){
+					var serialize = "";
 					for(var i = 0;i<results.length;i++){
 						//console.log(results[i]['images'][0]);
 						if(results[i]['images']){
-							console.log("IMAGE!!!")
-							console.log(results[i]['images'][0].display_sizes[0].uri);
-							flights[i].image = results[i]['images'][0].display_sizes[0].uri;
+							serialize += results[i]['images'][0].id + ",";
+							flights[i].imageId = results[i]['images'][0].id;
 						}
 					}
-					res.send(flights);
+					request.get({
+							url : 'https://connect.gettyimages.com:443/v3/images/' + encodeURIComponent(serialize) + '?fields=display_set',
+							json : true,
+							headers:{
+							'Api-Key' : auth.getty.key
+							}
+						},
+							function(error, response, body){
+								for(var i = 0;i<flights.length;i++){
+									for(var k = 0;k<body['images'].length;k++){
+										if(body['images'][k].id == flights[i].imageId){
+											flights[i].image = body['images'][k].display_sizes[0].uri;
+										}
+									}
+								}
+								res.send(flights);
+							});
 				});
 				//res.send(flights);
 
@@ -128,7 +144,7 @@ var getImage = function(flight, callback){
 		+ encodeURIComponent(flight.place),
 		json: true,
 		headers:{
-			'Api-Key' : 'qk8yaxa6wa4rr9qkwg3fq8wy'
+			'Api-Key' : auth.getty.key
 		}
 	},
 	function(error, response, body){

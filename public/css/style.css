@@ -1,0 +1,45 @@
+body{
+	background: url('../assets/plane.jpg') center center;
+	background-size: cover;
+	background-attachment: fixed;
+}
+
+.container.form, .container.results{
+	width:100%;
+	background-color: rgba(000,000,000,0.6);
+	color:white;
+	padding: 1%;
+}
+
+.container.form input{
+	color:black;
+}
+
+.col-md-3.flight{
+	background-size: cover;
+	background-attachment: fixed;
+	height: 300px;
+	padding:0;
+}
+
+.caption{
+	background-color: rgba(000,000,000,0.8);
+	display: inline-block;
+    vertical-align: middle;
+    float: none;
+    width:100%;
+}
+/*==========  Animations  ==========*/
+.animate.ng-enter, .animate.ng-leave {
+  transition: 1s ease-in all;
+  position: relative;
+  display: block;
+} 
+
+.animate.ng-enter.ng-enter-active, .animate.ng-leave {
+  opacity: 1;
+}
+.animate.ng-leave.ng-leave-active, .animate.ng-enter {
+  opacity: 0;
+}
+

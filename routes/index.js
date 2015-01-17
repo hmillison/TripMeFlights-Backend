@@ -58,7 +58,7 @@ module.exports = function (app) {
 				flights = getPlace(flights, body.Places);
 				flights = createURL(flights, params.startDate, params.endDate);
 				flights = formatJSON(flights)
-				if(simple == true){
+				if(params.simple == true){
 					flights.sort(compare);
 					res.send(flights);
 				}
@@ -119,7 +119,6 @@ var BudgetTrips = function(quotes, maxprice){
 	for(var i = 0;i<quotes.length;i++){
 		if(quotes[i].Price < maxprice){
 			result.push(quotes[i]);
-			result[i].price = result[i].price;
 		}
 	}
 	return result;
@@ -161,6 +160,7 @@ var formatCarriers = function(flights, carriers){
 
 var formatAirports = function(flights, places){
 	for(var i = 0;i<flights.length;i++){
+		flights[i].price = flights[i].Price;
 		flights[i].Outbound_FromStationName = idToName(flights[i].Outbound_FromStationId, places, "PlaceId");
 	}
 	return flights;

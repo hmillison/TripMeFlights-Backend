@@ -18,6 +18,9 @@ module.exports = function (app) {
 			"dest" : "US",
 			"simple" : true
 		};
+		// var months = [
+		// 	month['Jan']
+		// ]
 		if(req.query.airport){
 			params.airport = req.query.airport;
 		}
@@ -55,44 +58,45 @@ module.exports = function (app) {
 				flights = getPlace(flights, body.Places);
 				flights = createURL(flights, params.startDate, params.endDate);
 				flights = formatJSON(flights)
-				flights.sort(compare);
-				res.send(flights);
-				
-				// else{
-				// 	async.mapLimit(flights, 3, getImage, function(err, results){
-				// 		var serialize = "";
-				// 		console.log("IMAGES" + results.length);
-				// 		console.log("FLIGHTS" + flights.length);
-				// 		console.log(results);
+				if(simple == true){
+					flights.sort(compare);
+					res.send(flights);
+				}
+				else{
+					async.mapLimit(flights, 2, getImage, function(err, results){
+						var serialize = "";
+						console.log("IMAGES" + results.length);
+						console.log("FLIGHTS" + flights.length);
+						console.log(results);
 
-				// 		for(var i = 0;i<results.length;i++){
-				// 				//console.log(results[i]['images'][0]);
-				// 				//console.log(flights[i].Outbound_ToStationId);
-				// 				//console.log(results[i].images);
-				// 				serialize += results[i].images[0].id + ",";
-				// 				flights[i].imageId = results[i].images[0].id;
+						for(var i = 0;i<results.length;i++){
+								//console.log(results[i]['images'][0]);
+								//console.log(flights[i].Outbound_ToStationId);
+								//console.log(results[i].images);
+								serialize += results[i].images[0].id + ",";
+								flights[i].imageId = results[i].images[0].id;
 							
-				// 		}
-				// 		request.get({
-				// 				url : 'https://connect.gettyimages.com:443/v3/images/' + encodeURIComponent(serialize) + '?fields=display_set',
-				// 				json : true,
-				// 				headers:{
-				// 				'Api-Key' : 'qk8yaxa6wa4rr9qkwg3fq8wy'
-				// 				}
-				// 			},
-				// 				function(error, response, body){
-				// 					for(var i = 0;i<flights.length;i++){
-				// 						for(var k = 0;k<body['images'].length;k++){
-				// 							if(body['images'][k].id == flights[i].imageId){
-				// 								flights[i].image = body['images'][k].display_sizes[0].uri;
-				// 							}
-				// 						}
-				// 					}
-				// 					flights.sort(compare);
-				// 					res.send(flights);
-				// 				});
-				// 	});
-				// }
+						}
+						request.get({
+								url : 'https://connect.gettyimages.com:443/v3/images/' + encodeURIComponent(serialize) + '?fields=display_set',
+								json : true,
+								headers:{
+								'Api-Key' : 'qk8yaxa6wa4rr9qkwg3fq8wy'
+								}
+							},
+								function(error, response, body){
+									for(var i = 0;i<flights.length;i++){
+										for(var k = 0;k<body['images'].length;k++){
+											if(body['images'][k].id == flights[i].imageId){
+												flights[i].image = body['images'][k].display_sizes[0].uri;
+											}
+										}
+									}
+									flights.sort(compare);
+									res.send(flights);
+								});
+					});
+				}
 			}
 		});
 	});
@@ -115,6 +119,7 @@ var BudgetTrips = function(quotes, maxprice){
 	for(var i = 0;i<quotes.length;i++){
 		if(quotes[i].Price < maxprice){
 			result.push(quotes[i]);
+			result[i].price = result[i].price;
 		}
 	}
 	return result;
@@ -212,7 +217,7 @@ var formatJSON = function(flights){
 	};
 	for(var i = 0;i<flights.length;i++){
 		obj = { 
-			"price" : Math.round(flights[i].Price),
+			"price" : Math.round(flights[i].price),
 			"city" : flights[i].place,
 			"airportDEST" : flights[i].Outbound_ToStationId,
 			"airportFROM" : flights[i].Outbound_FromStationId,

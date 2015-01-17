@@ -1,7 +1,6 @@
 var request = require('request');
 var moment = require('moment');
 var async = require('async');
-var auth = require('../auth');
 
 
 module.exports = function (app) {
@@ -49,6 +48,7 @@ module.exports = function (app) {
 			if(!error)
 			{
 				var flights = BudgetTrips(body.Quotes, params.price);
+				console.log(flights.length + " flights found");
 				flights = formatAgents(flights, body.Agents);
 				flights = formatCarriers(flights, body.Carriers);
 				flights = formatAirports(flights, body.Places);
@@ -77,7 +77,7 @@ module.exports = function (app) {
 								url : 'https://connect.gettyimages.com:443/v3/images/' + encodeURIComponent(serialize) + '?fields=display_set',
 								json : true,
 								headers:{
-								'Api-Key' : auth.getty.key
+								'Api-Key' : 'qk8yaxa6wa4rr9qkwg3fq8wy'
 								}
 							},
 								function(error, response, body){
@@ -167,7 +167,7 @@ var getImage = function(flight, callback){
 		+ encodeURIComponent(flight.place),
 		json: true,
 		headers:{
-			'Api-Key' : auth.getty.key
+			'Api-Key' : 'qk8yaxa6wa4rr9qkwg3fq8wy'
 		}
 	},
 	function(error, response, body){

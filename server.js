@@ -9,9 +9,6 @@ app.set('views', __dirname + '/public/views');
 app.set('view engine', 'ejs');
 
 
-// load auth variables
-var auth = require('./auth');
-
 var example = __dirname + '/example.json';
 
 

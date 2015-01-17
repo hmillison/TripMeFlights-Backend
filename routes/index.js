@@ -6,7 +6,7 @@ module.exports = function (app) {
 	  res.render('index.ejs');
 	});
 
-	app.get('/trips', function(req, res){
+	app.get('/search', function(req, res){
 		var params = {
 			"airport" : "LAX",
 			"startDate" : "2015-02-06",
@@ -20,9 +20,12 @@ module.exports = function (app) {
 		function(error, response, body){
 			if(!error)
 			{
-				var popFlights = PopularTrips(body.Routes);	
-				var prices = PriceByTrip(popFlights, body.Quotes)	
-				res.send(popFlights);
+				//var popFlights = PopularTrips(body.Routes);	
+				var flights = BudgetTrips(body.Quotes, 200);
+				flights = formatAgents(flights, body.Agents);
+				flights = formatCarriers(flights, body.Carriers);
+				flights = createURL(flights);
+				res.send(flights);
 
 			}
 		});
@@ -40,44 +43,52 @@ var PopularTrips = function(flights){
 	return result;
 }
 
-//finds prices using trip ids and combines into one object
-var PriceByTrip = function(flights, quotes){
-	var result = [];
-	var obj = {
-		"RouteId" : "",
-		"OriginId" : "",
-		"DestinationId" : "",
-		"Direct" : "",
-		"Price" : "",
-		"Inbound_Carrier" : "",
-		"Inbound_Agent" : "",
-		"Outbound_Carrier" : "",
-		"Outbound_Agent" : ""}
-	}
-	for(var i = 0;i<flights.length;i++){
-		for(var k = 0;k<quotes.length;k++){
-			if(flights.RouteId === quotes.RouteId){
-				
-			}
+//returns array of trips with price less than maxprice
+var BudgetTrips = function(quotes, maxprice){
+	var result = []
+	for(var i = 0;i<quotes.length;i++){
+		if(quotes[i].Price < maxprice){
+			result.push(quotes[i]);
 		}
 	}
+	return result;
+}
+
+var createURL = function(flights){
+	for(var i = 0;i<flights.length;i++){
+		flights[i].url = 'http://www.skyscanner.com/transport/flights/' + flights[i].Outbound_FromStationId + '/' + flights[i].Outbound_ToStationId + '/150206/150211/airfares-from-los-angeles-international-to-united-states-in-february-2015.html?rtn=1&includePlusOneStops=true&browsePrice=139&age=0';
+	}
+	return flights;
+}
+
+
+var formatAgents = function(flights, agents){
+	for(var i = 0;i<flights.length;i++){
+		flights[i].Outbound_AgentName = idToName(flights[i].Outbound_AgentIds[0], agents);
+		flights[i].Inbound_AgentName = idToName(flights[i].Inbound_AgentIds[0], agents);
+	}
+	return flights;
+
+}
+
+var formatCarriers = function(flights, carriers){
+	for(var i = 0;i<flights.length;i++){
+		flights[i].Outbound_CarrierName = idToName(flights[i].Outbound_CarrierIds[0], carriers);
+		flights[i].Inbound_CarrierName = idToName(flights[i].Inbound_CarrierIds[0], carriers);
+	}
+	return flights
 }
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+var idToName = function(id, names){
+	for(var i = 0;i<names.length;i++){
+		
+		if(names[i].AgentId && names[i].AgentId == id){
+			return names[i].Name;
+		}
+		else if(names[i].CarrierId && names[i].CarrierId == id){
+			return names[i].Name;
+		}
+	}
+}

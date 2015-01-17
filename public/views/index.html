@@ -38,8 +38,8 @@
 		<div data-ng-repeat="result in results" class="col-md-3 col-sm-3 flight " style="background: url('{{ result.image }}') center center;">
 		<a href="{{result.url}}" target="_blank">
 			<div class="caption">
-				<h2>Flight to {{result.place}}</h2>
-				<h3>${{ result.Price }}</h3>
+				<h2>Flight to {{result.place}}</h2><h4>[ {{result.Outbound_ToStationId}} ]</h4>
+				<h3>${{ result.Price | number:0}}</h3>
 			</div>
 		</a>
         </div> 

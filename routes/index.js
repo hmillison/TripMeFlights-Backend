@@ -15,7 +15,8 @@ module.exports = function (app) {
 		var params = {
 			"airport" : "DTW",
 			"startDate" : "2015-03-01",
-			"endDate" : "2015-03-07"
+			"endDate" : "2015-03-07",
+			"price" : 300
 		};
 		if(req.query.airport){
 			params.airport = req.query.airport;
@@ -26,6 +27,11 @@ module.exports = function (app) {
 		if(req.query.endDate){
 			params.endDate = req.query.endDate;
 		}
+		if(req.query.price){
+			params.price = req.query.price;
+		}
+		var url =  'http://www.skyscanner.com/dataservices/browse/v1.1/US/USD/en-US/destinations/' +  params.airport + '/US/' + params.startDate + '/' + params.endDate + '/?includequotedate=true&includemetadata=true&includecityid=false';
+		console.log(url);
 		request({
 			method: 'GET',
 			uri: 'http://www.skyscanner.com/dataservices/browse/v1.1/US/USD/en-US/destinations/' +  params.airport + '/US/' + params.startDate + '/' + params.endDate + '/?includequotedate=true&includemetadata=true&includecityid=false',
@@ -34,8 +40,7 @@ module.exports = function (app) {
 		function(error, response, body){
 			if(!error)
 			{
-
-				var flights = BudgetTrips(body.Quotes, req.query.price);
+				var flights = BudgetTrips(body.Quotes, params.price);
 				flights = formatAgents(flights, body.Agents);
 				flights = formatCarriers(flights, body.Carriers);
 				flights = formatAirports(flights, body.Places);
@@ -65,7 +70,8 @@ module.exports = function (app) {
 										}
 									}
 								}
-								res.send(flights);
+								var result = formatJSON(flights);
+								res.send(result);
 							});
 				});
 				//res.send(flights);
@@ -180,7 +186,24 @@ var getPlace = function(flights, places){
 	return flights;
 }
 
+var formatJSON = function(flights){
+	var result = [];
+	var obj = {
+		"price" : "",
+		"city" : "",
+		"airport" : ""
+	};
+	for(var i = 0;i<flights.length;i++){
+		obj = { 
+			"price" : Math.round(flights[i].Price),
+			"city" : flights[i].place,
+			"airport" : flights[i].Outbound_ToStationId
+		}
 
+		result.push(obj);
+	}
+	return result;
+}
 
 
 

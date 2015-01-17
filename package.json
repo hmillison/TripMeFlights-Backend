@@ -1,0 +1,11 @@
+{
+  "name": "nodeboilerplate",
+  "description": "quickly get your node app up and running",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "ejs": "^2.1.4",
+    "express": "latest",
+    "request": "^2.40.0"
+  }
+}

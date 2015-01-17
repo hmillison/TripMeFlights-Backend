@@ -1,4 +1,5 @@
 var request = require('request');
+var moment = require('moment');
 
 module.exports = function (app) {
 
@@ -8,10 +9,19 @@ module.exports = function (app) {
 
 	app.get('/search', function(req, res){
 		var params = {
-			"airport" : "LAX",
-			"startDate" : "2015-02-06",
-			"endDate" : "2015-02-11"
+			"airport" : "DTW",
+			"startDate" : "2015-03-01",
+			"endDate" : "2015-03-07"
 		};
+		if(req.query.airport){
+			params.airport = req.query.airport;
+		}
+		if(req.query.startDate){
+			params.startDate = req.query.startDate;
+		}
+		if(req.query.endDate){
+			params.endDate = req.query.endDate;
+		}
 		request({
 			method: 'GET',
 			uri: 'http://www.skyscanner.com/dataservices/browse/v1.1/US/USD/en-US/destinations/' +  params.airport + '/US/' + params.startDate + '/' + params.endDate + '/?includequotedate=true&includemetadata=true&includecityid=false',
@@ -20,11 +30,12 @@ module.exports = function (app) {
 		function(error, response, body){
 			if(!error)
 			{
+
 				var flights = BudgetTrips(body.Quotes, 200);
 				flights = formatAgents(flights, body.Agents);
 				flights = formatCarriers(flights, body.Carriers);
 				flights = formatAirports(flights, body.Places);
-				flights = createURL(flights);
+				flights = createURL(flights, params.startDate, params.endDate);
 				res.send(flights);
 
 			}
@@ -54,14 +65,18 @@ var BudgetTrips = function(quotes, maxprice){
 	return result;
 }
 
-var createURL = function(flights){
+var createURL = function(flights, startDate,endDate){
 	for(var i = 0;i<flights.length;i++){
 		var airport = flights[i].Outbound_FromStationName.split(" ");
 		var airportoutput = "";
 		for(var k = 0;k<airport.length;k++){
 			airportoutput += airport[k] + "-";
 		}
-		flights[i].url = 'http://www.skyscanner.com/transport/flights/' + flights[i].Outbound_FromStationId + '/' + flights[i].Outbound_ToStationId + '/150206/150211/airfares-from-' + airportoutput + 'to-united-states-in-february-2015.html?rtn=1&includePlusOneStops=true&browsePrice=139&age=0';
+		var month = moment(startDate).format('MMMM');
+		var year = moment(startDate).format('YYYY');
+		var startShort = moment(startDate).format('YYMMDD');
+		var endShort = moment(endDate).format('YYMMDD');
+		flights[i].url = 'http://www.skyscanner.com/transport/flights/' + flights[i].Outbound_FromStationId + '/' + flights[i].Outbound_ToStationId + '/' + startShort + '/' + endShort + '/airfares-from-' + airportoutput + 'to-united-states-in-' + month + '-' + year + '.html?rtn=1&includePlusOneStops=true&browsePrice=139&age=0';
 	}
 	return flights;
 }

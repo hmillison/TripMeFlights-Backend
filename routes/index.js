@@ -16,7 +16,8 @@ module.exports = function (app) {
 			"endDate" : "2015-03-07",
 			"price" : 300,
 			"dest" : "US",
-			"simple" : true
+			"simple" : true,
+			"filterSpirit" : false
 		};
 		// var months = [
 		// 	month['Jan']
@@ -39,6 +40,9 @@ module.exports = function (app) {
 		if(req.query.simple){
 			params.simple = req.query.simple;
 		}
+		if(req.query.filterSpirit){
+			params.filterSpirit = req.query.filterSpirit;
+		}
 		var url =  'http://www.skyscanner.com/dataservices/browse/v1.1/US/USD/en-US/destinations/' +  params.airport + '/' 
 		+ params.dest + '/' + params.startDate + '/' + params.endDate + '/?includequotedate=true&includemetadata=true&includecityid=false';
 		console.log(url);
@@ -53,7 +57,7 @@ module.exports = function (app) {
 				var flights = BudgetTrips(body.Quotes, params.price);
 				console.log(flights.length + " flights found");
 				flights = formatAgents(flights, body.Agents);
-				flights = formatCarriers(flights, body.Carriers);
+				flights = formatCarriers(flights, params.filterSpirit, body.Carriers);
 				flights = formatAirports(flights, body.Places);
 				flights = getPlace(flights, body.Places);
 				flights = createURL(flights, params.startDate, params.endDate);
@@ -152,10 +156,13 @@ var formatAgents = function(flights, agents){
 
 }
 
-var formatCarriers = function(flights, carriers){
+var formatCarriers = function(flights, filterSpirit, carriers){
 	for(var i = 0;i<flights.length;i++){
 		flights[i].Outbound_CarrierName = idToName(flights[i].Outbound_CarrierIds[0], carriers, "CarrierId");
 		flights[i].Inbound_CarrierName = idToName(flights[i].Inbound_CarrierIds[0], carriers, "CarrierId");
+		if(filterSpirit == true && (flights[i].Outbound_CarrierName == "Spirit Airlines" ||  flights[i].Inbound_CarrierName == "Spirit Airlines")){
+			flights.splice(i,1);
+		}
 	}
 	return flights
 }
@@ -221,7 +228,7 @@ var formatJSON = function(flights){
 			"airportFROM" : flights[i].Outbound_FromStationId,
 			"startDate" : flights[i].startDate,
 			"endDate" : flights[i].endDate,
-			'url' : flights[i].url,
+			"url" : flights[i].url,
 			"airline" : flights[i].Outbound_CarrierName
 		}
 

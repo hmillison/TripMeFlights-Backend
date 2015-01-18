@@ -65,16 +65,16 @@ module.exports = function (app) {
 				else{
 					async.mapLimit(flights, 2, getImage, function(err, results){
 						var serialize = "";
-						console.log("IMAGES" + results.length);
-						console.log("FLIGHTS" + flights.length);
-						console.log(results);
+						
 
 						for(var i = 0;i<results.length;i++){
 								//console.log(results[i]['images'][0]);
 								//console.log(flights[i].Outbound_ToStationId);
 								//console.log(results[i].images);
-								serialize += results[i].images[0].id + ",";
-								flights[i].imageId = results[i].images[0].id;
+								if(result[i].images){
+									serialize += results[i].images[0].id + ",";
+									flights[i].imageId = results[i].images[0].id;
+								}
 							
 						}
 						request.get({
@@ -221,7 +221,8 @@ var formatJSON = function(flights){
 			"airportFROM" : flights[i].Outbound_FromStationId,
 			"startDate" : flights[i].startDate,
 			"endDate" : flights[i].endDate,
-			'url' : flights[i].url
+			'url' : flights[i].url,
+			"airline" : flights[i].Outbound_CarrierName
 		}
 
 		result.push(obj);

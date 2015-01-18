@@ -233,8 +233,11 @@ var formatJSON = function(flights){
 			"url" : flights[i].url,
 			"airline" : flights[i].Outbound_CarrierName
 		}
+		
+		if(obj.airline != undefined){
+			result.push(obj);
+		};
 
-		result.push(obj);
 	}
 	return result;
 }

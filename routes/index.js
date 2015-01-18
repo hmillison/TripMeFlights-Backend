@@ -24,7 +24,7 @@ module.exports = function (app) {
 		if(req.query.airport){
 			params.airport = req.query.airport;
 		}
-		if(req.query.startDate){
+		if(req.query.startDate && req.query.startDate != null){
 			params.startDate = req.query.startDate;
 		}
 		if(req.query.endDate){

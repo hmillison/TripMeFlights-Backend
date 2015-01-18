@@ -17,7 +17,7 @@ module.exports = function (app) {
 			"price" : 300,
 			"dest" : "US",
 			"simple" : true,
-			"filterSpirit" : false
+			"filterSpirit" : "false"
 		};
 		// var months = [
 		// 	month['Jan']
@@ -57,10 +57,11 @@ module.exports = function (app) {
 				var flights = BudgetTrips(body.Quotes, params.price);
 				console.log(flights.length + " flights found");
 				flights = formatAgents(flights, body.Agents);
+				console.log(params.filterSpirit)
 				flights = formatCarriers(flights, params.filterSpirit, body.Carriers);
 				flights = formatAirports(flights, body.Places);
 				flights = getPlace(flights, body.Places);
-				flights = createURL(flights, params.startDate, params.endDate);
+			    flights = createURL(flights, params.startDate, params.endDate);
 				flights = formatJSON(flights)
 				if(params.simple == true){
 					flights.sort(compare);
@@ -135,8 +136,8 @@ var createURL = function(flights, startDate,endDate){
 		for(var k = 0;k<airport.length;k++){
 			airportoutput += airport[k] + "-";
 		}
-		flights[i].startDate = moment(startDate).format('MMM DD, YY');
-		flights[i].endDate = moment(endDate).format('MMM DD, YY');
+		flights[i].startDate = moment(startDate).format('MMM DD, YYYY');
+		flights[i].endDate = moment(endDate).format('MMM DD, YYYY');
 		var month = moment(startDate).format('MMMM');
 		var year = moment(startDate).format('YYYY');
 		var startShort = moment(startDate).format('YYMMDD');
@@ -160,7 +161,8 @@ var formatCarriers = function(flights, filterSpirit, carriers){
 	for(var i = 0;i<flights.length;i++){
 		flights[i].Outbound_CarrierName = idToName(flights[i].Outbound_CarrierIds[0], carriers, "CarrierId");
 		flights[i].Inbound_CarrierName = idToName(flights[i].Inbound_CarrierIds[0], carriers, "CarrierId");
-		if(filterSpirit == true && (flights[i].Outbound_CarrierName == "Spirit Airlines" ||  flights[i].Inbound_CarrierName == "Spirit Airlines")){
+		if(filterSpirit == "true" && (flights[i].Outbound_CarrierName === "Spirit Airlines" ||  flights[i].Inbound_CarrierName === "Spirit Airlines")){
+			console.log("flight filtered");
 			flights.splice(i,1);
 		}
 	}

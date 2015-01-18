@@ -131,6 +131,8 @@ var createURL = function(flights, startDate,endDate){
 		for(var k = 0;k<airport.length;k++){
 			airportoutput += airport[k] + "-";
 		}
+		flights[i].startDate = moment(startDate).format('MMM DD, YY');
+		flights[i].endDate = moment(endDate).format('MMM DD, YY');
 		var month = moment(startDate).format('MMMM');
 		var year = moment(startDate).format('YYYY');
 		var startShort = moment(startDate).format('YYMMDD');
@@ -210,17 +212,15 @@ var getPlace = function(flights, places){
 
 var formatJSON = function(flights){
 	var result = [];
-	var obj = {
-		"price" : "",
-		"city" : "",
-		"airport" : ""
-	};
+	var obj = {};
 	for(var i = 0;i<flights.length;i++){
 		obj = { 
 			"price" : Math.round(flights[i].price),
 			"city" : flights[i].place,
 			"airportDEST" : flights[i].Outbound_ToStationId,
 			"airportFROM" : flights[i].Outbound_FromStationId,
+			"startDate" : flights[i].startDate,
+			"endDate" : flights[i].endDate,
 			'url' : flights[i].url
 		}
 
